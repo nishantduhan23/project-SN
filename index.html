@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memoire d'Amour</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Additional styles for better login transition */
+        #login-screen {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background-color: #ffeef2;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+        }
+        
+        #main-screen {
+            display: none;
+        }
+        
+        #main-screen.active {
+            display: block;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Welcome message styles */
+        .welcome-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 133, 162, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .welcome-message h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .welcome-message p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        
+        .launch-button {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .launch-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Hidden file input for mobile compatibility */
+        #hidden-file-input {
+            display: none;
+        }
+        
+        /* Enhanced add button styles */
+        .add-moment {
+            cursor: pointer !important;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .add-moment:active {
+            transform: scale(0.95);
+        }
+        
+        /* Updated slideshow background styles - Only center slide */
+        .slideshow-background {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            z-index: -1;
+            overflow: hidden;
+            opacity: 0.4;
+            pointer-events: none;
+            background-color: rgba(255, 240, 245, 0.3);
+            border-top: 1px solid rgba(255, 133, 162, 0.2);
+            transition: opacity 0.5s ease;
+        }
+        
+        .slideshow-background.hidden {
+            opacity: 0;
+        }
+        
+        .slideshow-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 20px;
+        }
+        
+        /* Only center slideshow item is used */
+        .slideshow-item.center {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            z-index: 5;
+            left: 50% !important;
+            transform: translateX(-50%) scale(0.8);
+            border: 8px solid white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            object-fit: cover;
+            bottom: 15% !important;
+            transition: all 1s ease;
+        }
+        
+        .slideshow-item.center.active {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Slideshow toggle button */
+        .slideshow-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .slideshow-toggle:hover {
+            transform: scale(1.1);
+            background-color: var(--accent-color);
+        }
+        
+        .slideshow-toggle i {
+            font-size: 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .slideshow-item.center {
+                width: 240px;
+                height: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Message -->
+    <div class="welcome-message" id="welcome-screen">
+        <h1>Welcome to Memoire d'Amour</h1>
+        <p>A special place to capture and cherish your beautiful moments, memories, and creative expressions.</p>
+        <button class="launch-button" id="launch-button">Launch App <i class="fas fa-heart"></i></button>
+        <p>Made with love by Nishu</p>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Welcome Back!</h1>
+                <p>Enter your password to unlock your special moments</p>
+            </div>
+            <div class="login-form">
+                <div class="password-input">
+                    <input type="password" id="password-field" placeholder="Enter your password">
+                    <i class="fas fa-key"></i>
+                </div>
+                <button id="login-button">Unlock <i class="fas fa-heart"></i></button>
+                <p class="login-error" id="login-error"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="main-screen" class="screen">
+        <!-- Slideshow Background -->
+        <div class="slideshow-background" id="slideshow-background">
+            <div class="slideshow-container" id="slideshow-container">
+                <!-- Only center slideshow item will be added dynamically -->
+            </div>
+        </div>
+        
+        <!-- Slideshow Toggle Button -->
+        <div class="slideshow-toggle" id="slideshow-toggle">
+            <i class="fas fa-images"></i>
+        </div>
+        
+        <header>
+            <h1>Memoire d'Amour</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-section="moments">Moments</a></li>
+                    <li><a href="#" class="nav-link" data-section="birthday">Birthday Timer</a></li>
+                    <li><a href="#" class="nav-link" data-section="love-notes">Love Notes</a></li>
+                    <li><a href="#" class="nav-link" data-section="milestones">Milestones</a></li>
+                    <li><a href="#" class="nav-link" data-section="secret-messages">Secret Messages</a></li>
+                    <li><a href="#" class="nav-link" data-section="themes">Themes</a></li>
+                    <li><a href="#" class="nav-link" data-section="bibliophile">Bibliophile</a></li>
+                    <li><a href="#" class="nav-link" data-section="drawing">Drawing Canvas</a></li>
+                </ul>
+            </nav>
+            <button id="logout-button"><i class="fas fa-sign-out-alt"></i></button>
+        </header>
+
+        <!-- Moments Section -->
+        <section id="moments-section" class="app-section active">
+            <h2>My Precious Moments <i class="fas fa-camera"></i></h2>
+            <div class="moments-gallery">
+                <!-- Gallery items will be added dynamically -->
+                <div class="add-moment" id="add-moment-button">
+                    <i class="fas fa-plus"></i>
+                    <p>Add New</p>
+                </div>
+            </div>
+            <!-- Hidden file input for better mobile compatibility -->
+            <input type="file" id="hidden-file-input" accept="image/*,video/*">
+        </section>
+
+        <!-- Birthday Timer Section -->
+        <section id="birthday-section" class="app-section">
+            <h2>Birthday Countdown <i class="fas fa-birthday-cake"></i></h2>
+            <div class="birthday-container">
+                <div class="birthday-input">
+                    <label for="birthday-date">Set Birthday Date:</label>
+                    <input type="date" id="birthday-date">
+                    <button id="save-birthday">Save</button>
+                </div>
+                <div class="countdown-container">
+                    <div class="countdown-item">
+                        <span id="days">00</span>
+                        <p>Days</p>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="hours">00</span>
+                        <p>Hours</p>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="minutes">00</span>
+                        <p>Minutes</p>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="seconds">00</span>
+                        <p>Seconds</p>
+                    </div>
+                </div>
+                <div class="birthday-message" id="birthday-message"></div>
+            </div>
+        </section>
+
+        <!-- Love Notes Section -->
+        <section id="love-notes-section" class="app-section">
+            <h2>Love Notes <i class="fas fa-heart"></i></h2>
+            <div class="love-notes-container">
+                <div class="love-notes-list" id="love-notes-list">
+                    <!-- Love notes will be added dynamically -->
+                </div>
+                <div class="love-note-editor">
+                    <textarea id="love-note-content" placeholder="Write a sweet message for your loved one..."></textarea>
+                    <div class="love-note-actions">
+                        <select id="love-note-color">
+                            <option value="#ffcccc">Pink</option>
+                            <option value="#ffddaa">Orange</option>
+                            <option value="#ffffcc">Yellow</option>
+                            <option value="#ccffcc">Green</option>
+                            <option value="#ccffff">Blue</option>
+                            <option value="#ddccff">Purple</option>
+                        </select>
+                        <button id="save-love-note">Save Note</button>
+                        <button id="clear-love-note">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Milestones Section -->
+        <section id="milestones-section" class="app-section">
+            <h2>Milestones & Anniversaries <i class="fas fa-calendar-heart"></i></h2>
+            <div class="milestones-container">
+                <div class="milestone-form">
+                    <input type="text" id="milestone-title" placeholder="Milestone Title">
+                    <input type="date" id="milestone-date">
+                    <select id="milestone-type">
+                        <option value="anniversary">Anniversary</option>
+                        <option value="first-date">First Date</option>
+                        <option value="first-kiss">First Kiss</option>
+                        <option value="first-trip">First Trip</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <button id="save-milestone">Add Milestone</button>
+                </div>
+                <div class="milestones-list" id="milestones-list">
+                    <!-- Milestones will be added dynamically -->
+                </div>
+                <div class="upcoming-milestones">
+                    <h3>Upcoming Events</h3>
+                    <div id="upcoming-milestones-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Secret Messages Section -->
+        <section id="secret-messages-section" class="app-section">
+            <h2>Secret Messages <i class="fas fa-lock"></i></h2>
+            <div class="secret-messages-container">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="encrypt">Encrypt & Share</button>
+                    <button class="tab-btn" data-tab="decrypt">Decrypt Message</button>
+                    <button class="tab-btn" data-tab="saved">Saved Messages</button>
+                </div>
+                
+                <!-- Encrypt Tab -->
+                <div class="tab-content active" id="encrypt-tab">
+                    <div class="secret-message-form">
+                        <textarea id="secret-message-input" placeholder="Write your secret message here..."></textarea>
+                        <input type="password" id="secret-message-password" placeholder="Set a password">
+                        <button id="encrypt-message">Encrypt Message</button>
+                    </div>
+                    <div class="encrypted-message-output">
+                        <h3>Encrypted Message</h3>
+                        <div id="encrypted-message-display"></div>
+                        <div class="action-buttons">
+                            <button id="copy-encrypted-message">Copy to Clipboard</button>
+                            <button id="save-encrypted-message">Save Message</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Decrypt Tab -->
+                <div class="tab-content" id="decrypt-tab">
+                    <div class="decrypt-message-form">
+                        <textarea id="decrypt-message-input" placeholder="Paste encrypted message here..."></textarea>
+                        <input type="password" id="decrypt-message-password" placeholder="Enter password">
+                        <button id="decrypt-message">Decrypt Message</button>
+                        <div id="decrypted-message-display"></div>
+                    </div>
+                </div>
+                
+                <!-- Saved Messages Tab -->
+                <div class="tab-content" id="saved-tab">
+                    <div class="saved-messages">
+                        <h3>Your Saved Secret Messages</h3>
+                        <div class="saved-messages-list" id="saved-messages-list">
+                            <!-- Saved messages will be added dynamically -->
+                        </div>
+                    </div>
+                    <div class="locked-message-view" id="locked-message-view">
+                        <h3>Locked Message</h3>
+                        <div class="locked-message-content">
+                            <p class="message-hint" id="message-hint"></p>
+                            <div class="password-input">
+                                <input type="password" id="unlock-message-password" placeholder="Enter password to unlock">
+                                <button id="unlock-message">Unlock</button>
+                            </div>
+                        </div>
+                        <div class="unlocked-message-content" id="unlocked-message-content"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Themes Section -->
+        <section id="themes-section" class="app-section">
+            <h2>Custom Themes <i class="fas fa-palette"></i></h2>
+            <div class="themes-container">
+                <div class="theme-options">
+                    <div class="theme-option" data-theme="default">
+                        <div class="theme-preview default-theme"></div>
+                        <span>Default</span>
+                    </div>
+                    <div class="theme-option" data-theme="sunset">
+                        <div class="theme-preview sunset-theme"></div>
+                        <span>Sunset</span>
+                    </div>
+                    <div class="theme-option" data-theme="ocean">
+                        <div class="theme-preview ocean-theme"></div>
+                        <span>Ocean</span>
+                    </div>
+                    <div class="theme-option" data-theme="forest">
+                        <div class="theme-preview forest-theme"></div>
+                        <span>Forest</span>
+                    </div>
+                    <div class="theme-option" data-theme="lavender">
+                        <div class="theme-preview lavender-theme"></div>
+                        <span>Lavender</span>
+                    </div>
+                    <div class="theme-option" data-theme="custom">
+                        <div class="theme-preview custom-theme"></div>
+                        <span>Custom</span>
+                    </div>
+                </div>
+                <div class="custom-theme-creator">
+                    <h3>Create Custom Theme</h3>
+                    <div class="color-picker">
+                        <label>Primary Color:</label>
+                        <input type="color" id="primary-color" value="#ff85a2">
+                    </div>
+                    <div class="color-picker">
+                        <label>Secondary Color:</label>
+                        <input type="color" id="secondary-color" value="#ffeef2">
+                    </div>
+                    <div class="color-picker">
+                        <label>Accent Color:</label>
+                        <input type="color" id="accent-color" value="#ff5a87">
+                    </div>
+                    <div class="color-picker">
+                        <label>Text Color:</label>
+                        <input type="color" id="text-color" value="#333333">
+                    </div>
+                    <button id="apply-custom-theme">Apply Custom Theme</button>
+                    <button id="save-custom-theme">Save as My Theme</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bibliophile Section -->
+        <section id="bibliophile-section" class="app-section">
+            <h2>Bibliophile's Corner <i class="fas fa-book-open"></i></h2>
+            <div class="bibliophile-container">
+                <div class="reading-status">
+                    <div class="current-read">
+                        <h3>Currently Reading <i class="fas fa-bookmark"></i></h3>
+                        <div class="book-form">
+                            <input type="text" id="current-book-title" placeholder="Book Title">
+                            <input type="text" id="current-book-author" placeholder="Author">
+                            <div class="progress-container">
+                                <label for="reading-progress">Reading Progress:</label>
+                                <input type="range" id="reading-progress" min="0" max="100" value="0">
+                                <span id="progress-value">0%</span>
+                            </div>
+                            <button id="save-current-book">Save</button>
+                        </div>
+                        <div class="current-book-display" id="current-book-display">
+                            <!-- Current book will be displayed here -->
+                        </div>
+                    </div>
+                    
+                    <div class="book-shelf">
+                        <h3>Book Shelf <i class="fas fa-book"></i></h3>
+                        <div class="completed-books" id="completed-books">
+                            <!-- Completed books will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="favorite-quotes">
+                    <h3>Favorite Quotes <i class="fas fa-quote-right"></i></h3>
+                    <div class="quote-form">
+                        <textarea id="quote-text" placeholder="Enter a quote that touched your heart..."></textarea>
+                        <input type="text" id="quote-book" placeholder="Book Title">
+                        <input type="text" id="quote-author" placeholder="Author">
+                        <button id="save-quote">Save Quote</button>
+                    </div>
+                    <div class="quotes-list" id="quotes-list">
+                        <!-- Quotes will be displayed here -->
+                    </div>
+                </div>
+                
+                <div class="reading-recommendations">
+                    <h3>Reading Recommendations <i class="fas fa-heart"></i></h3>
+                    <div class="recommendation-form">
+                        <input type="text" id="recommendation-title" placeholder="Book Title">
+                        <input type="text" id="recommendation-author" placeholder="Author">
+                        <textarea id="recommendation-reason" placeholder="Why do you recommend this book?"></textarea>
+                        <button id="save-recommendation">Add to Recommendations</button>
+                    </div>
+                    <div class="recommendations-list" id="recommendations-list">
+                        <!-- Recommendations will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Drawing Canvas Section -->
+        <section id="drawing-section" class="app-section">
+            <h2>Creative Canvas <i class="fas fa-paint-brush"></i></h2>
+            <div class="drawing-container">
+                <div class="drawing-tools">
+                    <div class="tool-group">
+                        <h3>Tools</h3>
+                        <div class="tools-buttons">
+                            <button class="tool-btn active" data-tool="pencil" title="Pencil">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="tool-btn" data-tool="brush" title="Brush">
+                                <i class="fas fa-paint-brush"></i>
+                            </button>
+                            <button class="tool-btn" data-tool="highlighter" title="Highlighter">
+                                <i class="fas fa-highlighter"></i>
+                            </button>
+                            <button class="tool-btn" data-tool="eraser" title="Eraser">
+                                <i class="fas fa-eraser"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <h3>Size</h3>
+                        <input type="range" id="brush-size" min="1" max="50" value="5">
+                        <span id="size-display">5px</span>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <h3>Color</h3>
+                        <div class="color-palette">
+                            <button class="color-btn active" data-color="#000000" style="background-color: #000000;"></button>
+                            <button class="color-btn" data-color="#ff0000" style="background-color: #ff0000;"></button>
+                            <button class="color-btn" data-color="#ff9900" style="background-color: #ff9900;"></button>
+                            <button class="color-btn" data-color="#ffff00" style="background-color: #ffff00;"></button>
+                            <button class="color-btn" data-color="#00ff00" style="background-color: #00ff00;"></button>
+                            <button class="color-btn" data-color="#00ffff" style="background-color: #00ffff;"></button>
+                            <button class="color-btn" data-color="#0000ff" style="background-color: #0000ff;"></button>
+                            <button class="color-btn" data-color="#9900ff" style="background-color: #9900ff;"></button>
+                            <button class="color-btn" data-color="#ff00ff" style="background-color: #ff00ff;"></button>
+                            <button class="color-btn" data-color="#ff85a2" style="background-color: #ff85a2;"></button>
+                        </div>
+                        <input type="color" id="custom-color" value="#000000">
+                    </div>
+                    
+                    <div class="tool-group">
+                        <h3>Opacity</h3>
+                        <input type="range" id="brush-opacity" min="0" max="100" value="100">
+                        <span id="opacity-display">100%</span>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <h3>Actions</h3>
+                        <div class="action-buttons">
+                            <button id="clear-canvas" title="Clear Canvas">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                            <button id="save-drawing" title="Save Drawing">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                            <button id="undo-drawing" title="Undo">
+                                <i class="fas fa-undo"></i> Undo
+                            </button>
+                            <button id="redo-drawing" title="Redo">
+                                <i class="fas fa-redo"></i> Redo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="canvas-container">
+                    <canvas id="drawing-canvas"></canvas>
+                </div>
+                
+                <div class="saved-drawings">
+                    <h3>Your Artistic Gallery <i class="fas fa-palette"></i></h3>
+                    <div style="text-align: right; margin-bottom: 10px;">
+                        <button id="clear-all-drawings" style="background-color: #ff5a87; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-trash-alt"></i> Clear All Drawings
+                        </button>
+                    </div>
+                    <div class="drawings-grid" id="drawings-grid">
+                        <!-- Saved drawings will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal for viewing moments -->
+    <div id="moment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-content-container"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/moments.js"></script>
+    <script src="js/birthday.js"></script>
+    <script src="js/love-notes.js"></script>
+    <script src="js/milestones.js"></script>
+    <script src="js/secret-messages.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/bibliophile.js"></script>
+    <script src="js/drawing.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Welcome screen script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const launchButton = document.getElementById('launch-button');
+            const loginScreen = document.getElementById('login-screen');
+            
+            // Check if user is already logged in - if so, welcome screen logic is skipped
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                // User is logged in, auth.js will handle showing the main screen
+                return;
+            }
+            
+            // Check if user has seen welcome screen before
+            const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+            
+            if (hasSeenWelcome) {
+                // If user has seen welcome screen, hide it completely
+                welcomeScreen.style.display = 'none';
+                // Login screen will be shown by auth.js
+            } else {
+                // First time user - show welcome screen and hide login
+                welcomeScreen.style.display = 'flex';
+                loginScreen.classList.remove('active');
+            }
+            
+            // Launch button click handler
+            launchButton.addEventListener('click', function() {
+                // Add fade out animation
+                welcomeScreen.style.opacity = '0';
+                welcomeScreen.style.transition = 'opacity 0.5s ease';
+                
+                // After animation completes, hide welcome screen and show login
+                setTimeout(function() {
+                    welcomeScreen.style.display = 'none';
+                    loginScreen.classList.add('active');
+                    // Save that user has seen welcome screen
+                    localStorage.setItem('hasSeenWelcome', 'true');
+                }, 500);
+            });
+        });
+    </script>
+    
+    <!-- Drawing canvas initialization helper -->
+    <script>
+        // Additional initialization for drawing canvas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the drawing section and nav link
+            const drawingSection = document.getElementById('drawing-section');
+            const drawingLink = document.querySelector('.nav-link[data-section="drawing"]');
+            
+            // Add a click handler to the drawing nav link
+            if (drawingLink) {
+                drawingLink.addEventListener('click', function() {
+                    // Force canvas resize after a short delay
+                    setTimeout(function() {
+                        const canvas = document.getElementById('drawing-canvas');
+                        if (canvas) {
+                            // Get the container dimensions
+                            const container = canvas.parentElement;
+                            const width = container.clientWidth;
+                            const height = container.clientHeight || 500;
+                            
+                            // Set canvas dimensions
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Clear canvas with white background
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = 'white';
+                            ctx.fillRect(0, 0, width, height);
+                            
+                            // Trigger a resize event to ensure all tools are properly initialized
+                            window.dispatchEvent(new Event('resize'));
+                            
+                            console.log('Canvas manually resized to:', width, 'x', height);
+                            
+                            // Reset undo/redo buttons
+                            const undoBtn = document.getElementById('undo-drawing');
+                            const redoBtn = document.getElementById('redo-drawing');
+                            
+                            if (undoBtn) {
+                                undoBtn.disabled = true;
+                                undoBtn.style.opacity = '0.5';
+                                undoBtn.style.pointerEvents = 'none';
+                            }
+                            
+                            if (redoBtn) {
+                                redoBtn.disabled = true;
+                                redoBtn.style.opacity = '0.5';
+                                redoBtn.style.pointerEvents = 'none';
+                            }
+                            
+                            // Make sure all tool buttons are properly initialized
+                            const toolBtns = document.querySelectorAll('.tool-btn');
+                            toolBtns.forEach(btn => {
+                                if (btn.classList.contains('active')) {
+                                    // Trigger a click on the active tool to ensure it's properly selected
+                                    btn.click();
+                                }
+                            });
+                        }
+                    }, 200);
+                });
+            }
+        });
+    </script>
+    
+    <!-- Slideshow toggle functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideshowToggle = document.getElementById('slideshow-toggle');
+            const slideshowBackground = document.getElementById('slideshow-background');
+            
+            // Slideshow toggle functionality
+            if (slideshowToggle && slideshowBackground) {
+                // Check if slideshow is enabled in localStorage
+                const isSlideshowEnabled = localStorage.getItem('slideshowEnabled') !== 'false';
+                
+                // Set initial state
+                if (!isSlideshowEnabled) {
+                    slideshowBackground.classList.add('hidden');
+                    slideshowToggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                }
+                
+                slideshowToggle.addEventListener('click', function() {
+                    slideshowBackground.classList.toggle('hidden');
+                    const isHidden = slideshowBackground.classList.contains('hidden');
+                    
+                    // Update icon
+                    slideshowToggle.innerHTML = isHidden ? 
+                        '<i class="fas fa-eye-slash"></i>' : 
+                        '<i class="fas fa-images"></i>';
+                    
+                    // Save preference
+                    localStorage.setItem('slideshowEnabled', !isHidden);
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch Memoire d'Amour</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffeef2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+        h1 {
+            color: #ff85a2;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #5e5e5e;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .launch-btn {
+            background-color: #ff85a2;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .launch-btn:hover {
+            background-color: #ff5c8d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Memoire d'Amour</h1>
+        <p>Welcome to your very own space! Click the button below to launch the app</p>
+        <button class="launch-btn" onclick="window.location.href='index.html'">Launch App</button>
+        <p style="margin-top: 20px; font-size: 14px; color: #ff85a2;">Made with love by Nishu</p>
+    </div>
+</body>
+</html> 
